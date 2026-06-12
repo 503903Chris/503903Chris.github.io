@@ -1,38 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Rainbow Flash</title>
+    <title></title>
     <style>
         body {
             margin: 0;
-            height: 100vh;
+            background: black;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: black;
-            overflow: hidden;
+            height: 100vh;
         }
 
-        h1 {
+        .text {
+            font-size: 100px;
             font-family: Arial, sans-serif;
-            font-size: 6rem;
             font-weight: bold;
-            text-transform: uppercase;
-            animation: rainbow 0.5s infinite;
+            animation: rainbow 0.3s linear infinite;
         }
 
         @keyframes rainbow {
-            0%   { color: red; }
-            16%  { color: orange; }
-            33%  { color: yellow; }
-            50%  { color: lime; }
-            66%  { color: cyan; }
-            83%  { color: blue; }
-            100% { color: magenta; }
+            0% { color: red; }
+            14% { color: orange; }
+            28% { color: yellow; }
+            42% { color: lime; }
+            57% { color: cyan; }
+            71% { color: blue; }
+            85% { color: purple; }
+            100% { color: red; }
         }
     </style>
 </head>
 <body>
-    <h1>Madhav Kumar</h1>
+    <div class="text">madhav kumar</div>
 </body>
 </html>
