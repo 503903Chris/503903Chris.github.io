@@ -1,36 +1,261 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: black;
-        }
+<meta charset="UTF-8">
+<title>高级五子棋</title>
 
-        .text {
-            font-size: 100px;
-            font-family: Arial, sans-serif;
-            font-weight: bold;
-            animation: rainbow 0.3s infinite linear;
-        }
+<style>
+body{
+    margin:0;
+    background:#000;
+    color:#fff;
+    text-align:center;
+    font-family:Arial;
+}
 
-        @keyframes rainbow {
-            0%   { color: red; }
-            14%  { color: orange; }
-            28%  { color: yellow; }
-            42%  { color: lime; }
-            57%  { color: cyan; }
-            71%  { color: blue; }
-            85%  { color: purple; }
-            100% { color: red; }
-        }
-    </style>
+h1{
+    text-shadow:0 0 10px #fff,0 0 30px #fff;
+}
+
+#top{
+    margin:10px;
+}
+
+canvas{
+    background:#d8b46a;
+    border:3px solid #fff;
+    margin-top:10px;
+}
+
+button{
+    margin:5px;
+    padding:8px 15px;
+    cursor:pointer;
+}
+
+#info{
+    margin-top:10px;
+    font-size:18px;
+}
+
+.neon{
+    text-shadow:0 0 10px #fff,0 0 20px #fff;
+}
+</style>
 </head>
+
 <body>
-    <div class="text">罗夫是给</div>
+
+<h1>五子棋</h1>
+
+<div id="top">
+<button onclick="resetGame()">重开</button>
+<button onclick="undo()">悔棋</button>
+<button onclick="toggleAI()">AI: <span id="aiState">关</span></button>
+</div>
+
+<canvas id="board" width="600" height="600"></canvas>
+
+<div id="info">黑棋先手</div>
+
+<script>
+
+const canvas=document.getElementById("board");
+const ctx=canvas.getContext("2d");
+
+const SIZE=15;
+const CELL=40;
+
+let board=[];
+let current=1;
+let gameOver=false;
+
+let history=[];
+
+let ai=false;
+
+function init(){
+board=[];
+for(let i=0;i<SIZE;i++){
+board[i]=[];
+for(let j=0;j<SIZE;j++) board[i][j]=0;
+}
+}
+
+function draw(){
+
+ctx.clearRect(0,0,600,600);
+
+for(let i=0;i<SIZE;i++){
+ctx.beginPath();
+ctx.moveTo(20,i*CELL+20);
+ctx.lineTo(580,i*CELL+20);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(i*CELL+20,20);
+ctx.lineTo(i*CELL+20,580);
+ctx.stroke();
+}
+
+for(let x=0;x<SIZE;x++){
+for(let y=0;y<SIZE;y++){
+
+if(board[x][y]){
+
+ctx.beginPath();
+ctx.arc(x*CELL+20,y*CELL+20,15,0,Math.PI*2);
+
+ctx.fillStyle=
+board[x][y]===1?"black":"white";
+
+ctx.fill();
+ctx.stroke();
+
+}
+}
+}
+}
+
+function click(e){
+
+if(gameOver) return;
+
+const rect=canvas.getBoundingClientRect();
+
+let x=Math.floor((e.clientX-rect.left)/CELL);
+let y=Math.floor((e.clientY-rect.top)/CELL);
+
+if(board[x][y]) return;
+
+place(x,y,current);
+
+history.push([x,y,current]);
+
+if(checkWin(x,y)){
+document.getElementById("info").innerText=
+(current===1?"黑":"白")+"棋胜利!";
+gameOver=true;
+return;
+}
+
+current=current===1?2:1;
+
+document.getElementById("info").innerText=
+(current===1?"黑":"白")+"棋回合";
+
+draw();
+
+if(ai && current===2){
+setTimeout(aiMove,200);
+}
+}
+
+function place(x,y,p){
+board[x][y]=p;
+draw();
+}
+
+function checkWin(x,y){
+
+let p=board[x][y];
+
+function count(dx,dy){
+let c=0;
+let i=x,j=y;
+
+while(i>=0&&i<SIZE&&j>=0&&j<SIZE&&board[i][j]===p){
+c++;i+=dx;j+=dy;
+}
+i=x-dx;j=y-dy;
+
+while(i>=0&&i<SIZE&&j>=0&&j<SIZE&&board[i][j]===p){
+c++;i-=dx;j-=dy;
+}
+return c-1;
+}
+
+return(
+count(1,0)>=5||
+count(0,1)>=5||
+count(1,1)>=5||
+count(1,-1)>=5
+);
+}
+
+function undo(){
+
+if(history.length===0) return;
+
+let last=history.pop();
+
+board[last[0]][last[1]]=0;
+
+current=last[2];
+
+gameOver=false;
+
+document.getElementById("info").innerText=
+(current===1?"黑":"白")+"棋回合";
+
+draw();
+}
+
+function resetGame(){
+init();
+current=1;
+gameOver=false;
+history=[];
+document.getElementById("info").innerText="黑棋先手";
+draw();
+}
+
+function toggleAI(){
+ai=!ai;
+document.getElementById("aiState").innerText=ai?"开":"关";
+}
+
+function aiMove(){
+
+if(gameOver) return;
+
+let empty=[];
+
+for(let x=0;x<SIZE;x++){
+for(let y=0;y<SIZE;y++){
+if(board[x][y]===0){
+empty.push([x,y]);
+}
+}
+}
+
+if(empty.length===0) return;
+
+let m=empty[Math.floor(Math.random()*empty.length)];
+
+place(m[0],m[1],2);
+
+history.push([m[0],m[1],2]);
+
+if(checkWin(m[0],m[1])){
+document.getElementById("info").innerText="白棋胜利!";
+gameOver=true;
+return;
+}
+
+current=1;
+
+document.getElementById("info").innerText="黑棋回合";
+
+draw();
+}
+
+canvas.addEventListener("click",click);
+
+init();
+draw();
+
+</script>
+
 </body>
 </html>
